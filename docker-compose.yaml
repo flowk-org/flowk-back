@@ -1,0 +1,44 @@
+services:
+  clickhouse-server:
+    image: yandex/clickhouse-server
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+      - "9009:9009"
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 262144
+        hard: 262144
+  #    volumes:
+  #      - ./db/cmd:/docker-entrypoint-initdb.d
+  #      - ./db/data:/var/lib/clickhouse/user_files/data
+  #      - ./db/migrations:/var/lib/clickhouse/user_files/migrations
+
+  clickhouse-client:
+    image: yandex/clickhouse-client
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9001:9001"
+      - "9002:9000"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+
+  mongo:
+    image: mongo:7
+    container_name: mongo
+    ports:
+      - "27017:27017"
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    depends_on:
+      - mongo
+    ports:
+      - "8081:8081"

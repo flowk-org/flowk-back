@@ -26,11 +26,20 @@ repositories {
 }
 
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-	implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+	// mongodb
+	implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
+
+	implementation("com.github.docker-java:docker-java-transport-httpclient5:3.2.3")
+	implementation("com.github.docker-java:docker-java:3.3.4")
+	implementation("com.github.docker-java:docker-java-transport-okhttp:3.3.4")
+
+	// minio
+	implementation("io.minio:minio:8.5.7")
+
+	implementation("io.fabric8:kubernetes-client:6.9.1")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
