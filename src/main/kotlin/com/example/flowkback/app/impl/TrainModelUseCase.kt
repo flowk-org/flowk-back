@@ -5,10 +5,10 @@ import com.example.flowkback.adapter.minio.MinioAdapter
 import com.example.flowkback.app.api.BuildImageOutbound
 import com.example.flowkback.app.api.CreateContainerOutbound
 import com.example.flowkback.app.api.Mount
+import com.example.flowkback.app.api.UploadFileOutbound
 import com.github.dockerjava.api.DockerClient
 import org.springframework.stereotype.Service
 import java.io.File
-import java.io.InputStream
 import java.time.Instant
 import kotlin.concurrent.thread
 
@@ -19,6 +19,7 @@ class TrainModelUseCase(
     private val dockerAdapter: DockerAdapter,
     private val minioAdapter: MinioAdapter,
     private val generateDockerfileDelegate: GenerateDockerfileDelegate,
+    private val uploadFileOutbound: UploadFileOutbound,
     private val dockerClient: DockerClient
 ) {
     fun execute(trainScript: File, modelName: String) {
@@ -65,11 +66,21 @@ class TrainModelUseCase(
 
             dockerAdapter.removeContainer(containerId)
 
-            val modelUrl = minioAdapter.uploadFile(
+//            val modelUrl = minioAdapter.uploadFile(
+//                inputStream = modelFile.inputStream(),
+//                fileName = modelFile.name,
+//                contentType = "application/octet-stream",
+//                bucketName = "models"
+//            )
+
+            val modelUrl = uploadFileOutbound.upload(
                 inputStream = modelFile.inputStream(),
                 fileName = modelFile.name,
-                contentType = "application/octet-stream"
+                contentType = "application/octet-stream",
+                bucketName = "models"
             )
+
+
 
             // 8. Отправка событий
 //            eventStore.save(
