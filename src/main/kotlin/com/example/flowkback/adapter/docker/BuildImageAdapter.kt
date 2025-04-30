@@ -4,7 +4,6 @@ import com.example.flowkback.app.api.BuildImageOutbound
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.BuildResponseItem
-import lombok.extern.slf4j.Slf4j
 import org.springframework.stereotype.Component
 import java.io.File
 import java.util.concurrent.CompletableFuture

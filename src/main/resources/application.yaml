@@ -7,7 +7,6 @@ spring:
       port: 27017
       database: flowk
 
-
 minio:
   endpoint: "http://localhost:9002"
   access-key: "minioadmin"

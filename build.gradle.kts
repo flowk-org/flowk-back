@@ -28,6 +28,7 @@ repositories {
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+
 	// mongodb
 	implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -38,6 +39,11 @@ dependencies {
 
 	// minio
 	implementation("io.minio:minio:8.5.7")
+
+	implementation("org.postgresql:postgresql:42.7.2")
+	implementation("org.modelmapper:modelmapper:3.2.0")
+	implementation("ru.yandex.clickhouse:clickhouse-jdbc:0.3.2")
+	implementation("com.clickhouse:client-v2:0.6.5")
 
 	implementation("io.fabric8:kubernetes-client:6.9.1")
 	compileOnly("org.projectlombok:lombok")

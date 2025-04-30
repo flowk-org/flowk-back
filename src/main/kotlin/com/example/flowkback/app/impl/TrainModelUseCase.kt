@@ -2,10 +2,8 @@ package com.example.flowkback.app.impl
 
 import com.example.flowkback.adapter.docker.DockerAdapter
 import com.example.flowkback.adapter.minio.MinioAdapter
-import com.example.flowkback.app.api.BuildImageOutbound
-import com.example.flowkback.app.api.CreateContainerOutbound
-import com.example.flowkback.app.api.Mount
-import com.example.flowkback.app.api.UploadFileOutbound
+import com.example.flowkback.app.api.*
+import com.example.flowkback.domain.event.ModelTrainedEvent
 import com.github.dockerjava.api.DockerClient
 import org.springframework.stereotype.Service
 import java.io.File
@@ -20,6 +18,7 @@ class TrainModelUseCase(
     private val minioAdapter: MinioAdapter,
     private val generateDockerfileDelegate: GenerateDockerfileDelegate,
     private val uploadFileOutbound: UploadFileOutbound,
+    private val saveEventOutbound: SaveEventOutbound,
     private val dockerClient: DockerClient
 ) {
     fun execute(trainScript: File, modelName: String) {
@@ -81,16 +80,15 @@ class TrainModelUseCase(
             )
 
 
-
             // 8. Отправка событий
-//            eventStore.save(
-//                ModelTrainedEvent(
-//                    modelName = modelName,
-//                    modelUrl = modelUrl,
-//                    logs = logs.toString(),
-//                    timestamp = Instant.now()
-//                )
-//            )
+            saveEventOutbound.save(
+                ModelTrainedEvent(
+                    modelName = modelName,
+                    modelUrl = modelUrl,
+                    logs = logs.toString(),
+                    trainedAt = Instant.now()
+                )
+            )
 //
 //            socketNotifier.notifyTrainingComplete(
 //                TrainingCompleteMessage(
@@ -118,12 +116,8 @@ class TrainModelUseCase(
     // Вспомогательные классы
     class ModelTrainingException(message: String) : RuntimeException(message)
 
-    data class ModelTrainedEvent(
-        val modelName: String,
-        val modelUrl: String,
-        val logs: String,
-        val timestamp: Instant
-    )
+
+
 
     data class TrainingCompleteMessage(
         val modelName: String,

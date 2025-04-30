@@ -9,7 +9,6 @@ interface BuildImageOutbound {
      *
      * @param dockerfileDir путь до Dockerfile
      * @param imageName название образа
-     *
      * @return идентификатор образа
      */
     fun build(dockerfileDir: File, imageName: String): String
