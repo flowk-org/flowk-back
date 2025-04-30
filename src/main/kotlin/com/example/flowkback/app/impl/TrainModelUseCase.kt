@@ -15,11 +15,9 @@ class TrainModelUseCase(
     private val buildImageOutbound: BuildImageOutbound,
     private val createContainerOutbound: CreateContainerOutbound,
     private val dockerAdapter: DockerAdapter,
-    private val minioAdapter: MinioAdapter,
     private val generateDockerfileDelegate: GenerateDockerfileDelegate,
     private val uploadFileOutbound: UploadFileOutbound,
     private val saveEventOutbound: SaveEventOutbound,
-    private val dockerClient: DockerClient
 ) {
     fun execute(trainScript: File, modelName: String) {
         try {

@@ -1,7 +1,5 @@
 package com.example.flowkback
 
-import com.example.flowkback.app.impl.TrainModelUseCase
-import com.example.flowkback.utils.DockerRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 

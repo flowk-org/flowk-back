@@ -6,6 +6,7 @@ import com.example.flowkback.domain.event.Event
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.util.concurrent.CompletableFuture
 
 private const val EVENT_TABLE = "event_store.events_buffer"
 
@@ -14,6 +15,9 @@ class SaveEventOutboundAdapter(private val clickhouseClient: Client) : SaveEvent
     override fun save(event: Event) {
         clickhouseClient.register(EventRecord::class.java, clickhouseClient.getTableSchema(EVENT_TABLE))
         clickhouseClient.insert(EVENT_TABLE, listOf(mapEventToRecord(event)))
+            .thenApply {
+                println("Event saved ${event.eventType()}")
+            }
     }
 
     private fun mapEventToRecord(event: Event): EventRecord {
