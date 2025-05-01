@@ -12,3 +12,7 @@ minio:
   access-key: "minioadmin"
   secret-key: "minioadmin"
   bucket-name: models
+
+server:
+  address: 0.0.0.0
+  port: 8080

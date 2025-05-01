@@ -14,6 +14,7 @@ private const val EVENT_TABLE = "event_store.events_buffer"
 class SaveEventOutboundAdapter(private val clickhouseClient: Client) : SaveEventOutbound {
     override fun save(event: Event) {
         clickhouseClient.register(EventRecord::class.java, clickhouseClient.getTableSchema(EVENT_TABLE))
+
         clickhouseClient.insert(EVENT_TABLE, listOf(mapEventToRecord(event)))
             .thenApply {
                 println("Event saved ${event.eventType()}")

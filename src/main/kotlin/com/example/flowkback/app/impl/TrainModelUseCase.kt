@@ -18,8 +18,9 @@ class TrainModelUseCase(
     private val generateDockerfileDelegate: GenerateDockerfileDelegate,
     private val uploadFileOutbound: UploadFileOutbound,
     private val saveEventOutbound: SaveEventOutbound,
-) {
-    fun execute(trainScript: File, modelName: String) {
+    private val socketNotifier: SocketNotifier
+) : TrainModelInbound {
+    override fun execute(trainScript: File, modelName: String) {
         try {
             // 1. Генерация Dockerfile
             val dockerfile = generateDockerfileDelegate.generate(
@@ -28,11 +29,9 @@ class TrainModelUseCase(
                 command = trainScript.name
             )
 
-            // 3. Сборка образа
             val containerName = "train-$modelName-${System.currentTimeMillis()}"
             val imageId = buildImageOutbound.build(dockerfile, containerName)
 
-            // 4. Создание и запуск контейнера
             val containerId = createContainerOutbound.create(
                 imageId,
                 containerName,
@@ -63,13 +62,6 @@ class TrainModelUseCase(
 
             dockerAdapter.removeContainer(containerId)
 
-//            val modelUrl = minioAdapter.uploadFile(
-//                inputStream = modelFile.inputStream(),
-//                fileName = modelFile.name,
-//                contentType = "application/octet-stream",
-//                bucketName = "models"
-//            )
-
             val modelUrl = uploadFileOutbound.upload(
                 inputStream = modelFile.inputStream(),
                 fileName = modelFile.name,
@@ -77,8 +69,6 @@ class TrainModelUseCase(
                 bucketName = "models"
             )
 
-
-            // 8. Отправка событий
             saveEventOutbound.save(
                 ModelTrainedEvent(
                     modelName = modelName,
@@ -87,15 +77,14 @@ class TrainModelUseCase(
                     trainedAt = Instant.now()
                 )
             )
-//
-//            socketNotifier.notifyTrainingComplete(
-//                TrainingCompleteMessage(
-//                    modelName = modelName,
-//                    status = "SUCCESS",
-//                    modelUrl = modelUrl
-//                )
-//            )
 
+            socketNotifier.notifyTrainingComplete(
+                TrainingCompleteMessage(
+                    modelName = modelName,
+                    status = "SUCCESS",
+                    modelUrl = modelUrl
+                )
+            )
         } catch (e: Exception) {
 //            eventStore.save(
 //                ModelTrainingFailedEvent(
@@ -113,9 +102,6 @@ class TrainModelUseCase(
 
     // Вспомогательные классы
     class ModelTrainingException(message: String) : RuntimeException(message)
-
-
-
 
     data class TrainingCompleteMessage(
         val modelName: String,

@@ -1,6 +1,7 @@
 package com.example.flowkback.app.api
 
+import java.io.File
 
 interface TrainModelInbound {
-    fun execute()
+    fun execute(trainScript: File, modelName: String)
 }

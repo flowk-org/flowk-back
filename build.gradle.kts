@@ -44,6 +44,11 @@ dependencies {
 	implementation("org.modelmapper:modelmapper:3.2.0")
 	implementation("ru.yandex.clickhouse:clickhouse-jdbc:0.3.2")
 	implementation("com.clickhouse:client-v2:0.6.5")
+	implementation("org.eclipse.jgit:org.eclipse.jgit:6.9.0.202403050737-r")
+
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0")
+	// WebSocket + STOMP
+	implementation("org.springframework.boot:spring-boot-starter-websocket")
 
 	implementation("io.fabric8:kubernetes-client:6.9.1")
 	compileOnly("org.projectlombok:lombok")

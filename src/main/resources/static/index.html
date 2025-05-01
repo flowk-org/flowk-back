@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Model Training Notification</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+<h1>Training Notification</h1>
+<div id="messages"></div>
+
+<script>
+    const socket = new SockJS('/ws');
+    const stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, () => {
+        console.log('Connected');
+        stompClient.subscribe('/topic/training-complete', (message) => {
+            const data = JSON.parse(message.body);
+            const msg = `✅ Model "${data.modelName}" trained successfully.<br>
+                     📦 Model URL: <a href="${data.modelUrl}" target="_blank">${data.modelUrl}</a>`;
+            document.getElementById("messages").innerHTML = msg;
+        });
+    });
+</script>
+</body>
+</html>

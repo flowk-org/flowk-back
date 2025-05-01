@@ -9,23 +9,7 @@ import java.io.InputStream
 
 @Component
 class UploadFileAdapter(private val minioClient: MinioClient) : UploadFileOutbound {
-//    override fun uploadFile(
-//        inputStream: InputStream,
-//        fileName: String,
-//        contentType: String,
-//        bucketName: String
-//    ): String {
-//        return ""
-//    }
-
     private val defaultBucket: String = "models"
-
-    @PostConstruct
-    fun init() {
-        if (!checkMinioHealth()) {
-            throw IllegalStateException("MinIO health check failed during initialization")
-        }
-    }
 
     /**
      * Upload file to MinIO with full verification
@@ -164,52 +148,52 @@ class UploadFileAdapter(private val minioClient: MinioClient) : UploadFileOutbou
     /**
      * Comprehensive MinIO health check
      */
-    fun checkMinioHealth(): Boolean {
-        return try {
-            // 1. Basic connection check
-            minioClient.listBuckets()
-
-            // 2. Verify default bucket
-            if (!checkBucketExistsWithRetry(defaultBucket, maxAttempts = 2)) {
-                println("Default bucket $defaultBucket does not exist")
-                return false
-            }
-
-            // 3. Test write/read/delete operations
-            val testObject = "healthcheck-${System.currentTimeMillis()}"
-            val testContent = "test".toByteArray()
-
-            // Upload
-            minioClient.putObject(
-                PutObjectArgs.builder()
-                    .bucket(defaultBucket)
-                    .`object`(testObject)
-                    .stream(testContent.inputStream(), testContent.size.toLong(), -1)
-                    .build()
-            )
-
-            // Verify
-            minioClient.statObject(
-                StatObjectArgs.builder()
-                    .bucket(defaultBucket)
-                    .`object`(testObject)
-                    .build()
-            )
-
-            // Cleanup
-            minioClient.removeObject(
-                RemoveObjectArgs.builder()
-                    .bucket(defaultBucket)
-                    .`object`(testObject)
-                    .build()
-            )
-
-            true
-        } catch (e: Exception) {
-            println("MinIO health check failed: ${e.message}")
-            false
-        }
-    }
+//    fun checkMinioHealth(): Boolean {
+//        return try {
+//            // 1. Basic connection check
+//            minioClient.listBuckets()
+//
+//            // 2. Verify default bucket
+//            if (!checkBucketExistsWithRetry(defaultBucket, maxAttempts = 2)) {
+//                println("Default bucket $defaultBucket does not exist")
+//                return false
+//            }
+//
+//            // 3. Test write/read/delete operations
+//            val testObject = "healthcheck-${System.currentTimeMillis()}"
+//            val testContent = "test".toByteArray()
+//
+//            // Upload
+//            minioClient.putObject(
+//                PutObjectArgs.builder()
+//                    .bucket(defaultBucket)
+//                    .`object`(testObject)
+//                    .stream(testContent.inputStream(), testContent.size.toLong(), -1)
+//                    .build()
+//            )
+//
+//            // Verify
+//            minioClient.statObject(
+//                StatObjectArgs.builder()
+//                    .bucket(defaultBucket)
+//                    .`object`(testObject)
+//                    .build()
+//            )
+//
+//            // Cleanup
+//            minioClient.removeObject(
+//                RemoveObjectArgs.builder()
+//                    .bucket(defaultBucket)
+//                    .`object`(testObject)
+//                    .build()
+//            )
+//
+//            true
+//        } catch (e: Exception) {
+//            println("MinIO health check failed: ${e.message}")
+//            false
+//        }
+//    }
 
     fun getFileUrl(
         fileName: String,
