@@ -1,7 +1,7 @@
 package com.example.flowkback.adapter.docker
 
-import com.example.flowkback.app.api.CreateContainerOutbound
-import com.example.flowkback.app.api.Mount
+import com.example.flowkback.app.api.executor.CreateContainerOutbound
+import com.example.flowkback.app.api.executor.Mount
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.model.Bind
 import com.github.dockerjava.api.model.Volume

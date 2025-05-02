@@ -1,6 +1,6 @@
 package com.example.flowkback.adapter.docker
 
-import com.example.flowkback.app.api.BuildImageOutbound
+import com.example.flowkback.app.api.executor.BuildImageOutbound
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.BuildResponseItem

@@ -1,12 +1,11 @@
 package com.example.flowkback.adapter.clickhouse
 
 import com.clickhouse.client.api.Client
-import com.example.flowkback.app.api.SaveEventOutbound
+import com.example.flowkback.app.api.event.SaveEventOutbound
 import com.example.flowkback.domain.event.Event
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.concurrent.CompletableFuture
 
 private const val EVENT_TABLE = "event_store.events_buffer"
 

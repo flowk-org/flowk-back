@@ -1,4 +1,4 @@
-package com.example.flowkback.app.api
+package com.example.flowkback.app.api.executor
 
 interface CreateContainerOutbound {
     /**
@@ -8,6 +8,7 @@ interface CreateContainerOutbound {
      * @param containerName название контейнера
      * @param mounts точки монтирования
      * @return идентификатор контейнера
+     * @throws
      */
     fun create(
         image: String,

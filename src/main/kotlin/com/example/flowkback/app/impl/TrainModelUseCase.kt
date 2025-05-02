@@ -1,10 +1,12 @@
 package com.example.flowkback.app.impl
 
 import com.example.flowkback.adapter.docker.DockerAdapter
-import com.example.flowkback.adapter.minio.MinioAdapter
 import com.example.flowkback.app.api.*
+import com.example.flowkback.app.api.executor.BuildImageOutbound
+import com.example.flowkback.app.api.executor.CreateContainerOutbound
+import com.example.flowkback.app.api.event.SaveEventOutbound
+import com.example.flowkback.app.api.executor.Mount
 import com.example.flowkback.domain.event.ModelTrainedEvent
-import com.github.dockerjava.api.DockerClient
 import org.springframework.stereotype.Service
 import java.io.File
 import java.time.Instant
@@ -22,7 +24,6 @@ class TrainModelUseCase(
 ) : TrainModelInbound {
     override fun execute(trainScript: File, modelName: String) {
         try {
-            // 1. Генерация Dockerfile
             val dockerfile = generateDockerfileDelegate.generate(
                 pythonVersion = "3.10",
                 requirementsFile = "data/requirements.txt",

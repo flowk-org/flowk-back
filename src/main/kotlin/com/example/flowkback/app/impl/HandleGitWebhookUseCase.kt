@@ -1,7 +1,7 @@
 package com.example.flowkback.app.impl
 
 import com.example.flowkback.adapter.rest.GitPushPayload
-import com.example.flowkback.app.api.HandleGitWebhookInbound
+import com.example.flowkback.app.api.handler.HandleGitWebhookInbound
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.PullResult
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
