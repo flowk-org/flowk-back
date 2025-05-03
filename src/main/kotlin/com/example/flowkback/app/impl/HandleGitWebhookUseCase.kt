@@ -47,13 +47,18 @@ class HandleGitWebhookUseCase(
     }
 
     private fun exec() {
-        parseChangedFiles()
-        checkConfigurationWithTheseFiles()
-        scheduleExecution()
+        val changes = parseChangedFiles()
+        val conf = getConfigFromBase("projectName")
+        val res = checkConfigurationWithTheseFiles(conf, changes)
+        scheduleExecution(res)
         startNeededUseCases()
     }
 
-    private fun scheduleExecution() {
+    private fun getConfigFromBase(s: String) {
+        TODO("Not yet implemented")
+    }
+
+    private fun scheduleExecution(res: Unit) {
         TODO("Not yet implemented")
     }
 
@@ -61,7 +66,7 @@ class HandleGitWebhookUseCase(
         TODO("Not yet implemented")
     }
 
-    private fun checkConfigurationWithTheseFiles() {
+    private fun checkConfigurationWithTheseFiles(conf: Unit, changes: Unit) {
         TODO("Not yet implemented")
     }
 

@@ -1,4 +1,4 @@
-package com.example.flowkback.domain.event
+package com.example.flowkback.app.api.event
 
 import com.example.flowkback.utils.ObjectMapper.objectMapper
 import com.fasterxml.jackson.annotation.JsonIgnore

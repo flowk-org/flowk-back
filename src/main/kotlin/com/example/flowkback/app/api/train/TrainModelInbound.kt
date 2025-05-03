@@ -1,4 +1,4 @@
-package com.example.flowkback.app.api
+package com.example.flowkback.app.api.train
 
 import java.io.File
 

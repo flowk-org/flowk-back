@@ -13,18 +13,3 @@ data class Project(
     val stages: List<Stage> = emptyList(),
     val createdAt: LocalDateTime = LocalDateTime.now()
 )
-
-data class Stage(
-    val name: String,
-    val status: StageStatus,
-    val startedAt: LocalDateTime? = null,
-    val finishedAt: LocalDateTime? = null,
-    val logs: String? = null
-)
-
-enum class StageStatus {
-    PENDING,
-    RUNNING,
-    COMPLETED,
-    FAILED
-}

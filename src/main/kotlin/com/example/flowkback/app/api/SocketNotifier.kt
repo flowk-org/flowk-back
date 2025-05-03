@@ -1,7 +1,8 @@
 package com.example.flowkback.app.api
 
-import com.example.flowkback.app.impl.TrainModelUseCase
+import com.example.flowkback.app.api.train.TrainingCompleteMessage
+
 
 interface SocketNotifier {
-    fun notifyTrainingComplete(message: TrainModelUseCase.TrainingCompleteMessage)
+    fun notifyTrainingComplete(message: TrainingCompleteMessage)
 }

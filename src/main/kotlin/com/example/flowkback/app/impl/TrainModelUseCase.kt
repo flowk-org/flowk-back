@@ -2,15 +2,21 @@ package com.example.flowkback.app.impl
 
 import com.example.flowkback.adapter.docker.DockerAdapter
 import com.example.flowkback.app.api.*
-import com.example.flowkback.app.api.executor.BuildImageOutbound
-import com.example.flowkback.app.api.executor.CreateContainerOutbound
+import com.example.flowkback.app.api.docker.BuildImageOutbound
+import com.example.flowkback.app.api.docker.CreateContainerOutbound
 import com.example.flowkback.app.api.event.SaveEventOutbound
-import com.example.flowkback.app.api.executor.Mount
-import com.example.flowkback.domain.event.ModelTrainedEvent
+import com.example.flowkback.app.api.docker.Mount
+import com.example.flowkback.app.api.train.TrainModelInbound
+import com.example.flowkback.app.api.event.ModelTrainedEvent
+import com.example.flowkback.app.api.event.ModelTrainingFailedEvent
+import com.example.flowkback.app.api.train.ModelTrainingException
+import com.example.flowkback.app.api.train.TrainingCompleteMessage
 import org.springframework.stereotype.Service
 import java.io.File
 import java.time.Instant
 import kotlin.concurrent.thread
+
+private const val s = "data/requirements.txt"
 
 @Service
 class TrainModelUseCase(
@@ -23,25 +29,30 @@ class TrainModelUseCase(
     private val socketNotifier: SocketNotifier
 ) : TrainModelInbound {
     override fun execute(trainScript: File, modelName: String) {
+        val containerName = "train-$modelName-${System.currentTimeMillis()}"
+        var containerId: String = ""
+
         try {
+            val requirementsFile = "data/requirements.txt"
+            val pythonVersion = "3.10"
             val dockerfile = generateDockerfileDelegate.generate(
-                pythonVersion = "3.10",
-                requirementsFile = "data/requirements.txt",
+                pythonVersion = pythonVersion,
+                requirementsFile = requirementsFile,
                 command = trainScript.name
             )
 
-            val containerName = "train-$modelName-${System.currentTimeMillis()}"
             val imageId = buildImageOutbound.build(dockerfile, containerName)
 
-            val containerId = createContainerOutbound.create(
+            val from = "/data/models"
+            val to = "/app/models"
+            containerId = createContainerOutbound.create(
                 imageId,
                 containerName,
-                listOf(Mount(from = "/data/models", to = "/app/models"))
+                listOf(Mount(from = from, to = to))
             )
 
             dockerAdapter.startContainer(containerId)
 
-            // 5. Мониторинг логов в реальном времени
             val logs = StringBuilder()
             val logThread = thread {
                 dockerAdapter.getContainerLogs(containerId).lines().forEach { line ->
@@ -50,7 +61,6 @@ class TrainModelUseCase(
                 }
             }
 
-            // 6. Ожидание завершения
             val exitCode = dockerAdapter.waitForContainer(containerId)
             logThread.join()
 
@@ -58,16 +68,18 @@ class TrainModelUseCase(
                 throw ModelTrainingException("Training failed with exit code $exitCode. Logs: ${logs.take(500)}...")
             }
 
-            val modelFile = File("data/models/model.h5").takeIf { it.exists() }
+            val modelPath = "data/models/model.h5"
+            val modelFile = File(modelPath).takeIf { it.exists() }
                 ?: throw ModelTrainingException("Model file not found after training")
 
-            dockerAdapter.removeContainer(containerId)
+//            dockerAdapter.removeContainer(containerId)
 
+            val bucketName = "models"
             val modelUrl = uploadFileOutbound.upload(
                 inputStream = modelFile.inputStream(),
                 fileName = modelFile.name,
                 contentType = "application/octet-stream",
-                bucketName = "models"
+                bucketName = bucketName
             )
 
             saveEventOutbound.save(
@@ -87,26 +99,19 @@ class TrainModelUseCase(
                 )
             )
         } catch (e: Exception) {
-//            eventStore.save(
-//                ModelTrainingFailedEvent(
-//                    modelName = modelName,
-//                    error = e.message ?: "Unknown error",
-//                    timestamp = Instant.now()
-//                )
-//            )
+            saveEventOutbound.save(
+                ModelTrainingFailedEvent(
+                    modelName = modelName,
+                    error = e.message ?: "Unknown error",
+                    timestamp = Instant.now()
+                )
+            )
             throw e
         } finally {
-            // Гарантированная очистка контейнера
-//            dockerAdapter.removeContainer(containerId)
+            containerId.takeIf { it.isNotEmpty() }
+                ?.let {
+                    dockerAdapter.removeContainer(it)
+                }
         }
     }
-
-    // Вспомогательные классы
-    class ModelTrainingException(message: String) : RuntimeException(message)
-
-    data class TrainingCompleteMessage(
-        val modelName: String,
-        val status: String,
-        val modelUrl: String
-    )
 }
