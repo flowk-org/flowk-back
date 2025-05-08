@@ -26,21 +26,6 @@ class DockerAdapter(private val dockerClient: DockerClient) {
         return "Container with ID: $containerId removed."
     }
 
-    fun getContainerLogs(containerId: String): String {
-        val logBuilder = StringBuilder()
-
-        dockerClient.logContainerCmd(containerId)
-            .withStdOut(true)
-            .withStdErr(true)
-            .exec(object : ResultCallback.Adapter<Frame>() {
-                override fun onNext(item: Frame) {
-                    logBuilder.append(String(item.payload))
-                }
-            })
-
-        return logBuilder.toString()
-    }
-
     fun removeVolume(volumeName: String) {
         dockerClient.removeVolumeCmd(volumeName).exec()
     }

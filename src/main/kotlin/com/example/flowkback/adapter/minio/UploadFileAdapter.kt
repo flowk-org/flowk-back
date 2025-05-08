@@ -3,6 +3,7 @@ package com.example.flowkback.adapter.minio
 import com.example.flowkback.app.api.UploadFileOutbound
 import io.minio.*
 import io.minio.http.Method
+import io.minio.messages.Tags
 import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Component
 import java.io.InputStream
@@ -18,7 +19,8 @@ class UploadFileAdapter(private val minioClient: MinioClient) : UploadFileOutbou
         inputStream: InputStream,
         fileName: String,
         contentType: String,
-        bucketName: String
+        bucketName: String,
+        tags: Map<String, String>
     ): String {
         try {
             // 1. Ensure bucket exists with retries
@@ -33,6 +35,7 @@ class UploadFileAdapter(private val minioClient: MinioClient) : UploadFileOutbou
                 PutObjectArgs.builder()
                     .bucket(bucketName)
                     .`object`(fileName)
+                    .tags(Tags.newBucketTags(tags))
                     .stream(contentBytes.inputStream(), contentLength, -1)
                     .contentType(contentType)
                     .build()
@@ -145,60 +148,10 @@ class UploadFileAdapter(private val minioClient: MinioClient) : UploadFileOutbou
         }
     }
 
-    /**
-     * Comprehensive MinIO health check
-     */
-//    fun checkMinioHealth(): Boolean {
-//        return try {
-//            // 1. Basic connection check
-//            minioClient.listBuckets()
-//
-//            // 2. Verify default bucket
-//            if (!checkBucketExistsWithRetry(defaultBucket, maxAttempts = 2)) {
-//                println("Default bucket $defaultBucket does not exist")
-//                return false
-//            }
-//
-//            // 3. Test write/read/delete operations
-//            val testObject = "healthcheck-${System.currentTimeMillis()}"
-//            val testContent = "test".toByteArray()
-//
-//            // Upload
-//            minioClient.putObject(
-//                PutObjectArgs.builder()
-//                    .bucket(defaultBucket)
-//                    .`object`(testObject)
-//                    .stream(testContent.inputStream(), testContent.size.toLong(), -1)
-//                    .build()
-//            )
-//
-//            // Verify
-//            minioClient.statObject(
-//                StatObjectArgs.builder()
-//                    .bucket(defaultBucket)
-//                    .`object`(testObject)
-//                    .build()
-//            )
-//
-//            // Cleanup
-//            minioClient.removeObject(
-//                RemoveObjectArgs.builder()
-//                    .bucket(defaultBucket)
-//                    .`object`(testObject)
-//                    .build()
-//            )
-//
-//            true
-//        } catch (e: Exception) {
-//            println("MinIO health check failed: ${e.message}")
-//            false
-//        }
-//    }
-
     fun getFileUrl(
         fileName: String,
         bucketName: String = defaultBucket,
-        expiresInSeconds: Int = 604800 // 7 days
+        expiresInSeconds: Int = 604800
     ): String {
         return try {
             minioClient.getPresignedObjectUrl(

@@ -7,6 +7,7 @@ interface UploadFileOutbound {
         inputStream: InputStream,
         fileName: String,
         contentType: String = "application/octet-stream",
-        bucketName: String
+        bucketName: String,
+        tags: Map<String, String> = emptyMap()
     ): String
 }

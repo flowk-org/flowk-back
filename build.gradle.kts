@@ -47,9 +47,11 @@ dependencies {
 	implementation("org.eclipse.jgit:org.eclipse.jgit:6.9.0.202403050737-r")
 
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0")
+
 	// WebSocket + STOMP
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
-
+	implementation("org.springframework.kafka:spring-kafka")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("io.fabric8:kubernetes-client:6.9.1")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")

@@ -1,76 +1,105 @@
 package com.example.flowkback.app.impl
 
-import com.example.flowkback.adapter.rest.GitPushPayload
+import com.example.flowkback.adapter.rest.git.hook.GitPushPayload
+import com.example.flowkback.app.api.executor.PipelineExecutor
 import com.example.flowkback.app.api.handler.HandleGitWebhookInbound
+import com.example.flowkback.app.api.project.ConfigRepository
+import com.example.flowkback.domain.config.Config
+import com.example.flowkback.domain.run.StageType
+import com.example.flowkback.utils.ConfigParser
+import lombok.extern.slf4j.Slf4j
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.PullResult
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.io.File
 
 @Service
+@Slf4j
 class HandleGitWebhookUseCase(
-    private val trainModelUseCase: TrainModelUseCase
+    private val configRepository: ConfigRepository,
+    private val pipelineExecutor: PipelineExecutor
 ) : HandleGitWebhookInbound {
-    override fun execute(payload: GitPushPayload) {
-        val repoUrl = payload.repository.cloneUrl
-        val modelName = payload.repository.name
-        val localRepoDir = File("repos/${modelName}")
 
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    override fun handle(payload: GitPushPayload) {
+        val repoName = payload.repository.name
+        val repoUrl = payload.repository.cloneUrl
+        val localRepoDir = File("repos/$repoName")
+
+        try {
+            cloneOrPullRepo(repoUrl, localRepoDir)
+
+            val changedFiles = extractChangedFiles(payload)
+            val config = configRepository.getByProjectName(repoName)
+
+            val pipelinesToRun = analyzePipelineTriggers(config, changedFiles)
+            pipelineExecutor.schedule(repoName, pipelinesToRun)
+            pipelineExecutor.start(repoName, pipelinesToRun)
+        } catch (e: Exception) {
+            logger.error("Failed to process webhook for $repoName", e)
+            throw e
+        }
+    }
+
+    private fun cloneOrPullRepo(repoUrl: String, localDir: File): Git {
         val credentials = UsernamePasswordCredentialsProvider("Diachenko", "Yurok22!")
 
-        val git = if (!localRepoDir.exists()) {
+        return if (!localDir.exists()) {
+            logger.info("Cloning repository from $repoUrl into ${localDir.path}")
             Git.cloneRepository()
                 .setURI(repoUrl)
-                .setDirectory(localRepoDir)
+                .setDirectory(localDir)
                 .setCredentialsProvider(credentials)
                 .call()
         } else {
-            val existingGit = Git.open(localRepoDir)
-            val pullResult: PullResult = existingGit.pull()
+            logger.info("Pulling latest changes for ${localDir.name}")
+            val git = Git.open(localDir)
+            val pullResult: PullResult = git.pull()
                 .setCredentialsProvider(credentials)
                 .call()
-
             if (!pullResult.isSuccessful) {
-                throw IllegalStateException("Failed to pull latest changes for $modelName")
+                throw IllegalStateException("Git pull failed for ${localDir.name}")
             }
-
-            existingGit
+            git
         }
+    }
 
-        val trainScript = File(localRepoDir, "train.py")
-        if (!trainScript.exists()) {
-            throw IllegalStateException("train.py not found in $modelName repository")
+    private fun extractChangedFiles(payload: GitPushPayload): List<String> {
+        return payload.commits
+            .flatMap { it.added + it.modified + it.removed }
+            .distinct()
+    }
+
+    private fun analyzePipelineTriggers(config: Config, changedFiles: List<String>): List<StageType> {
+        val result = mutableListOf<StageType>()
+        if (changedFiles.any { it.endsWith(".py") && it.contains("train") }) {
+            result.addAll(
+                listOf(
+                    StageType.TRAIN,
+                    StageType.TEST,
+                    StageType.DEPLOY
+                )
+            )
+        } else if (changedFiles.any { it.endsWith(".py") && it.contains("test") }) {
+            result.addAll(
+                listOf(
+                    StageType.TEST,
+                    StageType.DEPLOY
+                )
+            )
+        } else if (changedFiles.any { it.endsWith("mlci.yaml") }) {
+            result.addAll(
+                listOf(
+                    StageType.PREPARE,
+                    StageType.TRAIN,
+                    StageType.TEST,
+                    StageType.DEPLOY
+                )
+            )
         }
-
-        trainModelUseCase.execute(trainScript, modelName)
-    }
-
-    private fun exec() {
-        val changes = parseChangedFiles()
-        val conf = getConfigFromBase("projectName")
-        val res = checkConfigurationWithTheseFiles(conf, changes)
-        scheduleExecution(res)
-        startNeededUseCases()
-    }
-
-    private fun getConfigFromBase(s: String) {
-        TODO("Not yet implemented")
-    }
-
-    private fun scheduleExecution(res: Unit) {
-        TODO("Not yet implemented")
-    }
-
-    private fun startNeededUseCases() {
-        TODO("Not yet implemented")
-    }
-
-    private fun checkConfigurationWithTheseFiles(conf: Unit, changes: Unit) {
-        TODO("Not yet implemented")
-    }
-
-    private fun parseChangedFiles() {
-        TODO("Not yet implemented")
+        return result
     }
 }

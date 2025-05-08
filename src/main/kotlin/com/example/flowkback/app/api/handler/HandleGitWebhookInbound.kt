@@ -1,7 +1,7 @@
 package com.example.flowkback.app.api.handler
 
-import com.example.flowkback.adapter.rest.GitPushPayload
+import com.example.flowkback.adapter.rest.git.hook.GitPushPayload
 
 interface HandleGitWebhookInbound {
-    fun execute(payload: GitPushPayload)
+    fun handle(payload: GitPushPayload)
 }

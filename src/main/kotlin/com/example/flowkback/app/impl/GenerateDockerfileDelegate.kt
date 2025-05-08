@@ -19,6 +19,7 @@ class GenerateDockerfileDelegate {
         workDir: String = DEFAULT_WORKDIR,
         outputDirectory: String = ".",
         requirementsFile: String = "requirements.txt",
+        trainScriptFile: String = "./repos/flowk-test/train.py",
         entrypoint: String = "python",
         command: String = "train.py"
     ): File {
@@ -35,7 +36,7 @@ class GenerateDockerfileDelegate {
             COPY $requirementsFile $workDir/$requirementsFile
             RUN pip install --no-cache-dir -r $requirementsFile
 
-            COPY ./data/train/train.py $workDir/train.py
+            COPY $trainScriptFile $workDir/$command
 
             ENTRYPOINT [ "$entrypoint" ]
             CMD [ "$command" ]

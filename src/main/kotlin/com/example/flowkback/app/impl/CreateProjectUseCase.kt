@@ -1,7 +1,7 @@
 package com.example.flowkback.app.impl
 
 import com.example.flowkback.app.api.project.CreateProjectInbound
-import com.example.flowkback.domain.Project
+import com.example.flowkback.domain.project.Project
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
