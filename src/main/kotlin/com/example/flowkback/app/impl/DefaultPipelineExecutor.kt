@@ -8,8 +8,10 @@ import java.nio.file.Paths
 
 @Component
 class DefaultPipelineExecutor(
+    private val prepareDataUseCase: PrepareDataUseCase,
     private val trainModelUseCase: TrainModelUseCase,
-    private val evaluateModelUseCase: EvaluateModelUseCase
+    private val evaluateModelUseCase: EvaluateModelUseCase,
+    private val deployModelUseCase: DeployModelUseCase
 ) : PipelineExecutor {
 
     private val logger = LoggerFactory.getLogger(DefaultPipelineExecutor::class.java)
@@ -27,6 +29,18 @@ class DefaultPipelineExecutor(
         pipelines.forEach { pipeline ->
             try {
                 when (pipeline) {
+                    StageType.PREPARE -> {
+                        val migrationDir = Paths.get("repos/$projectName/db/migrations").toFile()
+                        if (!migrationDir.exists()) {
+                            logger.warn("No migraions found for project: $projectName — skipping PREP pipeline")
+                            return@forEach
+                        }
+
+                        prepareDataUseCase.execute(projectName, migrationDir.absolutePath)
+
+                        logger.info("PREP pipeline completed for $projectName")
+                    }
+
                     StageType.TRAIN -> {
                         val trainScript = Paths.get("repos/$projectName/train.py").toFile()
                         if (!trainScript.exists()) {
@@ -62,12 +76,21 @@ class DefaultPipelineExecutor(
                         logger.info("TEST pipeline completed for $projectName")
                     }
 
-                    StageType.PREPARE -> {
-
-                    }
-
                     StageType.DEPLOY -> {
+                        val servingScript = Paths.get("repos/$projectName/serving.py").toFile()
+                        if (!servingScript.exists()) {
+                            logger.warn("No test.py found for project: $projectName — skipping TRAIN pipeline")
+                            return@forEach
+                        }
 
+                        deployModelUseCase.execute(
+                            servingScript,
+                            projectName,
+                            "/models",
+                            "3.10"
+                        )
+
+                        logger.info("DEPLOY pipeline completed for $projectName")
                     }
                 }
             } catch (ex: Exception) {

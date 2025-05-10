@@ -1,4 +1,4 @@
-package com.example.flowkback.fw
+package com.example.flowkback.fw.clickhouse
 
 import com.clickhouse.client.api.Client
 import org.springframework.context.annotation.Bean
@@ -11,7 +11,7 @@ class ClickhouseClientConfig {
         return Client.Builder()
             .addEndpoint("http://localhost:8123")
             .setUsername("default")
-            .setPassword("")
+            .setPassword("password")
             .build()
     }
 }

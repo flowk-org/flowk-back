@@ -2,16 +2,14 @@ package com.example.flowkback.app.impl
 
 import com.example.flowkback.adapter.docker.DockerAdapter
 import com.example.flowkback.adapter.minio.MinioAdapter
-import com.example.flowkback.app.api.*
-import com.example.flowkback.app.api.docker.BuildImageOutbound
-import com.example.flowkback.app.api.docker.CreateContainerOutbound
+import com.example.flowkback.app.api.SocketNotifier
+import com.example.flowkback.app.api.pipeline.DeployModelInbound
+import com.example.flowkback.domain.event.ModelDeploymentCompletedEvent
+import com.example.flowkback.domain.event.ModelDeploymentFailedEvent
+import com.example.flowkback.app.api.docker.*
 import com.example.flowkback.app.api.event.SaveEventOutbound
-import com.example.flowkback.app.api.docker.Mount
-import com.example.flowkback.app.api.docker.StreamLogsOutbound
-import com.example.flowkback.app.api.pipeline.EvaluateModelInbound
-import com.example.flowkback.domain.event.ModelEvaluationCompletedEvent
-import com.example.flowkback.domain.event.ModelEvaluationFailedEvent
 import com.example.flowkback.app.api.pipeline.ModelTrainingException
+import com.github.dockerjava.api.DockerClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -22,24 +20,24 @@ import java.nio.file.Paths
 import java.time.Instant
 
 @Service
-class EvaluateModelUseCase(
+class DeployModelUseCase(
     private val buildImageOutbound: BuildImageOutbound,
     private val createContainerOutbound: CreateContainerOutbound,
     private val dockerAdapter: DockerAdapter,
     private val generateDockerfileDelegate: GenerateDockerfileDelegate,
     private val saveEventOutbound: SaveEventOutbound,
     private val socketNotifier: SocketNotifier,
+    private val dockerClient: DockerClient,
     private val minioAdapter: MinioAdapter,
     private val streamLogsOutbound: StreamLogsOutbound
-) : EvaluateModelInbound {
+) : DeployModelInbound {
     override fun execute(
-        testScript: File,
+        servingScript: File,
         projectName: String,
         modelInputPath: String,
-        metricsOutputPath: String,
         pythonVersion: String
     ) {
-        val containerName = "test-$projectName-${System.currentTimeMillis()}"
+        val containerName = "deploy-$projectName-${System.currentTimeMillis()}"
         var containerId: String = ""
 
         try {
@@ -55,25 +53,22 @@ class EvaluateModelUseCase(
             )
 
             val requirementsFile = "./repos/$projectName/requirements.txt"
-            val testScriptFile = "./repos/$projectName/test.py"
+            val servingScriptFile = "./repos/$projectName/serving.py"
             val dockerfile = generateDockerfileDelegate.generate(
                 pythonVersion = pythonVersion,
                 requirementsFile = requirementsFile,
-                trainScriptFile = testScriptFile,
-                command = Paths.get(testScriptFile).toFile().name
+                trainScriptFile = servingScriptFile,
+                command = Paths.get(servingScriptFile).toFile().name
             )
 
             val imageId = buildImageOutbound.build(dockerfile, containerName)
 
             val models = "./models/$projectName"
-            val metrics = "./metrics/$projectName"
             containerId = createContainerOutbound.create(
                 imageId,
                 containerName,
-                listOf(
-                    Mount(from = models, to = modelInputPath),
-                    Mount(from = metrics, to = metricsOutputPath)
-                )
+                listOf(Mount(from = models, to = modelInputPath)),
+                listOf(PortForwarding(hostPort = 8082, containerPort = 5000))
             )
 
             dockerAdapter.startContainer(containerId)
@@ -81,7 +76,7 @@ class EvaluateModelUseCase(
             val logs = StringBuilder()
             CoroutineScope(Dispatchers.IO).launch {
                 streamLogsOutbound.stream(containerId).collect { line ->
-                    println("[TRAIN LOG] $line")
+                    println("[DEPLOY LOG] $line")
                     logs.appendLine(line)
                 }
             }
@@ -90,21 +85,14 @@ class EvaluateModelUseCase(
             // добавить join() логов
 
             if (exitCode != 0) {
-                throw ModelTrainingException("Testing failed with exit code $exitCode. Logs: ${logs.take(500)}...")
+                throw ModelTrainingException("Serving failed with exit code $exitCode. Logs: ${logs.take(500)}...")
             }
 
-            val metricsPath = "metrics/$projectName/metrics.json"
-            val metricsFile = File(metricsPath).takeIf { it.exists() }
-                ?: throw ModelTrainingException("Model file not found after training")
-
-//            dockerAdapter.removeContainer(containerId)
-
             saveEventOutbound.save(
-                ModelEvaluationCompletedEvent(
+                ModelDeploymentCompletedEvent(
                     modelName = projectName,
-                    metrics = FileUtils.readFileToString(metricsFile),
                     logs = logs.toString(),
-                    evaluatedAt = Instant.now()
+                    timestamp = Instant.now()
                 )
             )
 
@@ -117,7 +105,7 @@ class EvaluateModelUseCase(
 //            )
         } catch (e: Exception) {
             saveEventOutbound.save(
-                ModelEvaluationFailedEvent(
+                ModelDeploymentFailedEvent(
                     modelName = projectName,
                     error = e.message ?: "Unknown error",
                     timestamp = Instant.now()
@@ -125,11 +113,6 @@ class EvaluateModelUseCase(
             )
             // добавить кастомную ошибку
             throw e
-        } finally {
-            containerId.takeIf { it.isNotEmpty() }
-                ?.let {
-                    dockerAdapter.removeContainer(it)
-                }
         }
     }
 }

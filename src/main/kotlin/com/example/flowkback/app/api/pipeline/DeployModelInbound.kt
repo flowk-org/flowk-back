@@ -1,13 +1,12 @@
-package com.example.flowkback.app.api.test
+package com.example.flowkback.app.api.pipeline
 
 import java.io.File
 
-interface EvaluateModelInbound {
+interface DeployModelInbound {
     fun execute(
-        testScript: File,
+        servingScript: File,
         projectName: String,
         modelInputPath: String,
-        metricsOutputPath: String,
         pythonVersion: String
     )
 }

@@ -6,6 +6,9 @@ spring:
       host: localhost
       port: 27017
       database: flowk
+  jackson:
+    serialization:
+      indent-output: true
 
 minio:
   endpoint: "http://localhost:9002"
@@ -13,6 +16,13 @@ minio:
   secret-key: "minioadmin"
   bucket-name: models
 
+clickhouse:
+  host: localhost
+  port: 9000
+  user: default
+  password: password
+
 server:
   address: 0.0.0.0
   port: 8080
+

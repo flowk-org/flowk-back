@@ -1,8 +1,7 @@
 package com.example.flowkback.adapter.clickhouse
 
-import java.time.Instant
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 data class EventRecord(
     val eventId: UUID,

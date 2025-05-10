@@ -1,6 +1,6 @@
 package com.example.flowkback.app.api
 
-import com.example.flowkback.app.api.train.TrainingCompleteMessage
+import com.example.flowkback.app.api.pipeline.TrainingCompleteMessage
 
 
 interface SocketNotifier {

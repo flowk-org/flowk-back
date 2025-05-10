@@ -1,7 +1,7 @@
 package com.example.flowkback.adapter.ws
 
 import com.example.flowkback.app.api.SocketNotifier
-import com.example.flowkback.app.api.train.TrainingCompleteMessage
+import com.example.flowkback.app.api.pipeline.TrainingCompleteMessage
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Component
 

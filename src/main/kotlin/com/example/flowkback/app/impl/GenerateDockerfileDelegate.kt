@@ -45,6 +45,44 @@ class GenerateDockerfileDelegate {
         return createDockerfile(outputDirectory, dockerfileContent)
     }
 
+    fun generate(
+        clickhouseImage: String = "yandex/clickhouse-client:latest",
+        dir: String,
+        workDir: String = DEFAULT_WORKDIR,
+        outputDirectory: String = ".",
+        migrationsDir: String = "./migrations",
+        scriptFile: String
+    ): File {
+        validateClickhouseImage(clickhouseImage)
+
+        val dockerfileContent = """
+        FROM $clickhouseImage
+
+        RUN apt-get update && apt-get install -y bash clickhouse-client
+
+        RUN mkdir -p $workDir
+
+        WORKDIR $workDir
+
+        COPY $dir $workDir
+        COPY $scriptFile $workDir/migrate.sh
+
+        RUN chmod +x $workDir/migrate.sh
+
+        ENTRYPOINT [ "./migrate.sh" ]
+        CMD [ "/app/migrations" ]
+    """.trimIndent()
+
+        return createDockerfile(outputDirectory, dockerfileContent)
+    }
+
+    fun validateClickhouseImage(image: String) {
+        val regex = Regex("^[a-zA-Z0-9][a-zA-Z0-9_.-]*(/[a-zA-Z0-9][a-zA-Z0-9_.-]*)*(:[a-zA-Z0-9_.-]+)?$")
+        if (!image.matches(regex)) {
+            throw IllegalArgumentException("Invalid ClickHouse image format: $image. Expected format: repository:tag (e.g., clickhouse/clickhouse-server:latest)")
+        }
+    }
+
     private fun validatePythonVersion(version: String) {
         require(version.matches(Regex("""^\d+\.\d+(\.\d+)?$"""))) {
             "Invalid Python version format. Expected format: X.Y or X.Y.Z"

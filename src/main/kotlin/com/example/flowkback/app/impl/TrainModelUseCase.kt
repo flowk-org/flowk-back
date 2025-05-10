@@ -7,11 +7,11 @@ import com.example.flowkback.app.api.docker.CreateContainerOutbound
 import com.example.flowkback.app.api.event.SaveEventOutbound
 import com.example.flowkback.app.api.docker.Mount
 import com.example.flowkback.app.api.docker.StreamLogsOutbound
-import com.example.flowkback.app.api.train.TrainModelInbound
+import com.example.flowkback.app.api.pipeline.TrainModelInbound
 import com.example.flowkback.domain.event.ModelTrainedEvent
 import com.example.flowkback.domain.event.ModelTrainingFailedEvent
-import com.example.flowkback.app.api.train.ModelTrainingException
-import com.example.flowkback.app.api.train.TrainingCompleteMessage
+import com.example.flowkback.app.api.pipeline.ModelTrainingException
+import com.example.flowkback.app.api.pipeline.TrainingCompleteMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service
 import java.io.File
 import java.nio.file.Paths
 import java.time.Instant
-import kotlin.concurrent.thread
 
 @Service
 class TrainModelUseCase(
@@ -72,6 +71,7 @@ class TrainModelUseCase(
             }
 
             val exitCode = dockerAdapter.waitForContainer(containerId)
+            // добавить join() логов
 
             if (exitCode != 0) {
                 throw ModelTrainingException("Training failed with exit code $exitCode. Logs: ${logs.take(500)}...")
@@ -80,8 +80,6 @@ class TrainModelUseCase(
             val modelPath = "models/$projectName/model.h5"
             val modelFile = File(modelPath).takeIf { it.exists() }
                 ?: throw ModelTrainingException("Model file not found after training")
-
-//            dockerAdapter.removeContainer(containerId)
 
             val modelVersion = "v1.0.0"
             val modelUrl = uploadFileOutbound.upload(
@@ -105,6 +103,7 @@ class TrainModelUseCase(
                 )
             )
 
+            // поправить сокет
             socketNotifier.notifyTrainingComplete(
                 TrainingCompleteMessage(
                     modelName = projectName,
@@ -120,6 +119,7 @@ class TrainModelUseCase(
                     timestamp = Instant.now()
                 )
             )
+            // добавить кастомную ошибку
             throw e
         } finally {
             containerId.takeIf { it.isNotEmpty() }

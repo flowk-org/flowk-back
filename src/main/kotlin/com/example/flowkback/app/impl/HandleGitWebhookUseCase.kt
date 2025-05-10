@@ -90,6 +90,12 @@ class HandleGitWebhookUseCase(
                     StageType.DEPLOY
                 )
             )
+        } else if (changedFiles.any { it.endsWith(".py") && it.contains("serving") }) {
+            result.addAll(
+                listOf(
+                    StageType.DEPLOY
+                )
+            )
         } else if (changedFiles.any { it.endsWith("mlci.yaml") }) {
             result.addAll(
                 listOf(
@@ -97,6 +103,15 @@ class HandleGitWebhookUseCase(
                     StageType.TRAIN,
                     StageType.TEST,
                     StageType.DEPLOY
+                )
+            )
+        } else if (changedFiles.any { it.contains("migrations") }) {
+            result.addAll(
+                listOf(
+                    StageType.PREPARE,
+//                    StageType.TRAIN,
+//                    StageType.TEST,
+//                    StageType.DEPLOY
                 )
             )
         }

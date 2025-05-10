@@ -2,9 +2,11 @@ package com.example.flowkback
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import org.springframework.scheduling.annotation.EnableScheduling
 import java.io.File
 
 @SpringBootApplication
+@EnableScheduling
 class FlowkBackApplication
 
 fun main(args: Array<String>) {
