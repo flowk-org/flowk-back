@@ -1,5 +1,5 @@
 package com.example.flowkback.app.api.project;
 
 interface RunProjectInbound {
-    fun execute()
+    fun execute(projectName: String)
 }

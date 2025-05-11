@@ -1,12 +1,10 @@
 package com.example.flowkback.app.api.pipeline
 
-import java.io.File
+import com.example.flowkback.domain.project.Config
 
 interface DeployModelInbound {
     fun execute(
-        servingScript: File,
         projectName: String,
-        modelInputPath: String,
-        pythonVersion: String
+        projectConfig: Config
     )
 }

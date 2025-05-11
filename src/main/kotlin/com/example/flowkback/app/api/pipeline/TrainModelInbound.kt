@@ -1,12 +1,7 @@
 package com.example.flowkback.app.api.pipeline
 
-import java.io.File
+import com.example.flowkback.domain.project.Config
 
 interface TrainModelInbound {
-    fun execute(
-        trainScript: File,
-        projectName: String,
-        modelOutputPath: String,
-        pythonVersion: String
-    )
+    fun execute(projectName: String, projectConfig: Config)
 }

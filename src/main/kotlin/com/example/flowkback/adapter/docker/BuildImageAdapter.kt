@@ -9,19 +9,18 @@ import java.io.File
 import java.util.concurrent.CompletableFuture
 
 @Component
-class BuildImageAdapter(private val dockerClient: DockerClient): BuildImageOutbound {
-    override fun build(dockerfileDir: File, imageName: String): String {
+class BuildImageAdapter(private val dockerClient: DockerClient) : BuildImageOutbound {
+    override fun build(dockerfile: File, imageName: String): String {
         val imageIdFuture = CompletableFuture<String>()
 
         dockerClient.buildImageCmd()
-            .withDockerfile(dockerfileDir)
+            .withDockerfile(dockerfile)
             .withTags(setOf(imageName))
             .exec(buildCallback(imageIdFuture))
 
-        val imageId = imageIdFuture.get()
-        println("Image built with ID: $imageId")
-        return imageId
+        return imageIdFuture.get()
     }
+
 
     private fun buildCallback(imageIdFuture: CompletableFuture<String>): ResultCallback.Adapter<BuildResponseItem> {
         return object : ResultCallback.Adapter<BuildResponseItem>() {

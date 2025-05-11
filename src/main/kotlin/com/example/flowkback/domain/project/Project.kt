@@ -10,6 +10,6 @@ data class Project(
     @Id val id: String? = null,
     @Indexed(unique = true) val name: String,
     val gitUrl: String,
-    val configId: String,
+    val config: Config,
     val createdAt: LocalDateTime = LocalDateTime.now()
 )

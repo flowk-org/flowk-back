@@ -19,7 +19,7 @@ class RunWebSocketService(private val messagingTemplate: SimpMessagingTemplate) 
             id = 4,
             date = Instant.now().toString(),
             status = "Running",
-            stages = listOf("completed", "completed", "completed", "running"),
+            stages = listOf("blank", "blank", "completed", "running"),
             replayOfRun = ReplayOfRunDto(id = 2, stage = 3)
         )
     }

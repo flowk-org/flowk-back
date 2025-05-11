@@ -5,8 +5,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import java.time.Instant
 import java.util.*
 
-abstract class Event(private val timestamp: Instant) {
+abstract class Event(
+    private val projectName: String,
+    private val timestamp: Instant
+) {
     fun eventId(): UUID = UUID.randomUUID()
+
+    fun projectName(): String = projectName
 
     fun eventType(): String = this::class.simpleName ?: "UnknownEvent"
 
