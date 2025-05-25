@@ -1,6 +1,7 @@
 package com.example.flowkback.adapter.rest.git.hook
 
-import com.example.flowkback.app.impl.HandleGitWebhookUseCase
+import com.example.flowkback.adapter.rest.git.hook.dto.GitPushPayload
+import com.example.flowkback.app.impl.handler.HandleGitWebhookUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

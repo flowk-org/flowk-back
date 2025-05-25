@@ -1,8 +1,8 @@
 package com.example.flowkback.fw.clickhouse
 
 import com.clickhouse.client.api.Client
-import com.example.flowkback.adapter.clickhouse.EventRecord
-import com.example.flowkback.adapter.clickhouse.MigrationRecord
+import com.example.flowkback.adapter.clickhouse.event.record.EventRecord
+import com.example.flowkback.adapter.clickhouse.migration.record.MigrationRecord
 import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Component
 
@@ -24,6 +24,7 @@ class ClickhouseInitializer(private val clickhouseClient: Client) {
             CREATE TABLE IF NOT EXISTS event_store.events
             (
                 event_id      UUID,
+                runId         String,
                 event_type    String,
                 payload       String,
                 timestamp     DateTime

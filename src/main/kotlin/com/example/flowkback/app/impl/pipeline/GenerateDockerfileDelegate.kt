@@ -46,7 +46,7 @@ class GenerateDockerfileDelegate {
     }
 
     fun generate(
-        clickhouseImage: String = "yandex/clickhouse-client:latest",
+        clickhouseImage: String = "clickhouse/clickhouse-client:latest",
         dir: String,
         workDir: String = DEFAULT_WORKDIR,
         outputDirectory: String = ".",
@@ -57,8 +57,6 @@ class GenerateDockerfileDelegate {
 
         val dockerfileContent = """
         FROM $clickhouseImage
-
-        RUN apt-get update && apt-get install -y bash clickhouse-client
 
         RUN mkdir -p $workDir
 

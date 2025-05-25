@@ -8,11 +8,11 @@ import java.time.LocalDateTime
 data class Run(
     @Id val id: String? = null,
     val projectId: String,
-    val configId: String,
+    val runNumber: Int,
     val status: RunStatus,
     val stages: List<Stage>,
     val createdAt: LocalDateTime = LocalDateTime.now(),
-    val updatedAt: LocalDateTime = LocalDateTime.now()
+    var updatedAt: LocalDateTime = LocalDateTime.now()
 )
 
 

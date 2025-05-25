@@ -7,7 +7,7 @@ import java.time.LocalDateTime
 
 @Document(collection = "projects")
 data class Project(
-    @Id val id: String? = null,
+    @Id var id: String? = null,
     @Indexed(unique = true) val name: String,
     val gitUrl: String,
     val config: Config,

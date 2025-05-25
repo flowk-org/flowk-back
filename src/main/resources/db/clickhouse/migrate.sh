@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 
-# Environment variables with defaults
 CLICKHOUSE_HOST="${CLICKHOUSE_HOST:-flowk-back-clickhouse-server-1}"
 CLICKHOUSE_PORT="${CLICKHOUSE_PORT:-9000}"
 CLICKHOUSE_USER="${CLICKHOUSE_USER:-default}"
@@ -12,19 +11,16 @@ MIGRATIONS_DIR="${1:-${MIGRATIONS_DIR:-/db/migrations}}"
 
 echo "[INFO] Running migrations from $MIGRATIONS_DIR against $CLICKHOUSE_HOST:$CLICKHOUSE_PORT"
 
-# Ensure migrations directory exists
 if [ ! -d "$MIGRATIONS_DIR" ]; then
     echo "[ERROR] Migrations directory $MIGRATIONS_DIR does not exist"
     exit 1
 fi
-
 
 clickhouse-client --host="$CLICKHOUSE_HOST" --port="$CLICKHOUSE_PORT" \
     --user="$CLICKHOUSE_USER" --password="$CLICKHOUSE_PASSWORD" \
     --database="$CLICKHOUSE_DATABASE" \
     --query="CREATE DATABASE IF NOT EXISTS migrations;"
 
-# Create migrations table if it doesn't exist
 clickhouse-client --host="$CLICKHOUSE_HOST" --port="$CLICKHOUSE_PORT" \
     --user="$CLICKHOUSE_USER" --password="$CLICKHOUSE_PASSWORD" \
     --database="$CLICKHOUSE_DATABASE" \
@@ -32,12 +28,10 @@ clickhouse-client --host="$CLICKHOUSE_HOST" --port="$CLICKHOUSE_PORT" \
              (name String, applied_at DateTime DEFAULT now())
              ENGINE = MergeTree() ORDER BY applied_at;"
 
-# Apply migrations
 for file in "$MIGRATIONS_DIR"/*.sql; do
     if [ -f "$file" ]; then
         name=$(basename "$file")
 
-        # Check if migration has already been applied
         ALREADY_APPLIED=$(clickhouse-client --host="$CLICKHOUSE_HOST" --port="$CLICKHOUSE_PORT" \
             --user="$CLICKHOUSE_USER" --password="$CLICKHOUSE_PASSWORD" \
             --database="$CLICKHOUSE_DATABASE" \
@@ -50,7 +44,6 @@ for file in "$MIGRATIONS_DIR"/*.sql; do
                 --database="$CLICKHOUSE_DATABASE" \
                 --queries-file="$file"
 
-            # Record the applied migration
             clickhouse-client --host="$CLICKHOUSE_HOST" --port="$CLICKHOUSE_PORT" \
                 --user="$CLICKHOUSE_USER" --password="$CLICKHOUSE_PASSWORD" \
                 --database="$CLICKHOUSE_DATABASE" \

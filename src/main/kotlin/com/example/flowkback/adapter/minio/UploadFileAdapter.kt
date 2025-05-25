@@ -12,9 +12,6 @@ import java.io.InputStream
 class UploadFileAdapter(private val minioClient: MinioClient) : UploadFileOutbound {
     private val defaultBucket: String = "models"
 
-    /**
-     * Upload file to MinIO with full verification
-     */
     override fun upload(
         inputStream: InputStream,
         fileName: String,
@@ -166,5 +163,4 @@ class UploadFileAdapter(private val minioClient: MinioClient) : UploadFileOutbou
             throw MinioOperationException("Failed to generate URL for file '$fileName'", e)
         }
     }
-    // ... остальные методы (downloadFile, getFileUrl, deleteFile) остаются без изменений
 }

@@ -12,6 +12,7 @@ class DockerClientConfig {
     @Bean
     fun dockerClient(): DockerClient {
         val config = DefaultDockerClientConfig.createDefaultConfigBuilder()
+//            .withDockerHost("tcp://localhost:2375")
             .withDockerTlsVerify(false)
             .build()
 

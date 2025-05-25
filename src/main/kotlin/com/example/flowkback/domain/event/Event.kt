@@ -6,12 +6,12 @@ import java.time.Instant
 import java.util.*
 
 abstract class Event(
-    private val projectName: String,
+    private val runId: String,
     private val timestamp: Instant
 ) {
     fun eventId(): UUID = UUID.randomUUID()
 
-    fun projectName(): String = projectName
+    fun runId(): String = runId
 
     fun eventType(): String = this::class.simpleName ?: "UnknownEvent"
 
